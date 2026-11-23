@@ -1,365 +1,195 @@
-Actúa como especialista en optimización de transporte, planificación de rutas y Excel.
-
-Necesito resolver un problema de Vehicle Routing Problem, VRP, y entregar el resultado exclusivamente en un archivo Excel .xlsx. El Excel debe contener tanto los datos de entrada como la solución propuesta, los cálculos, la validación de restricciones y una explicación ejecutiva.
-
-## 1. Objetivo
-
-Planificar las rutas de mañana para:
-
-- 8 clientes: A, B, C, D, E, F, G y H.
-- 3 camiones.
-- 24 entregas en total.
-- 3 entregas por cliente.
-- Salida y regreso al almacén AL.
-- Prioridad alta para los clientes A y B.
-- Minimizar:
-  1. kilómetros totales;
-  2. horas de conducción y operación;
-  3. horas extra;
-  4. coste total;
-  5. desequilibrio de carga entre los camiones.
-
-Cada cliente debe ser atendido y todas las entregas deben quedar asignadas.
-
-## 2. Datos operativos
-
-### Entregas
-
-- Cada cliente recibe 3 entregas.
-- Cada entrega pesa 800 kg.
-- Cada entrega ocupa 2 pallets.
-- Demanda total por cliente:
-  - 2.400 kg;
-  - 6 pallets.
-- Demanda total:
-  - 19.200 kg;
-  - 48 pallets.
-
-### Capacidad de cada camión
-
-- Capacidad máxima: 3.500 kg.
-- Capacidad máxima: 12 pallets.
-- Número de camiones: 3.
-
-### Horarios
-
-- Ventana cliente A: 08:00–10:00.
-- Ventana cliente B: 08:00–10:00.
-- Resto de los clientes: sin ventana específica indicada. Utilizar como límite el horario operativo del camión.
-- Horario disponible de los camiones: 07:00–16:00.
-- Tiempo de descarga: 20 minutos por cliente visitado.
-- Todos los camiones salen y regresan al almacén AL.
+# Organizar Transporte
+
+Actúa como un experto en optimización de transporte, planificación de rutas y Vehicle Routing Problem (VRP).
+
+Necesito resolver y representar visualmente el siguiente problema de distribución.
+
+## 1. Escenario
 
-### Conversión de distancia a tiempo
-
-- 18 km equivalen a 25 minutos.
-- Velocidad media equivalente: 43,2 km/h.
-- Tiempo de viaje en minutos = distancia × 25 / 18.
-
-## 3. Matriz de distancias en kilómetros
-
-La matriz es simétrica.
-
-| Origen/Destino | AL | A | B | C | D | E | F | G | H |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| AL | 0 | 12 | 30 | 30 | 46 | 26 | 46 | 38 | 54 |
-| A  | 12 | 0 | 18 | 18 | 34 | 38 | 34 | 50 | 42 |
-| B  | 30 | 18 | 0 | 20 | 16 | 32 | 20 | 32 | 24 |
-| C  | 30 | 18 | 20 | 0 | 16 | 40 | 16 | 52 | 24 |
-| D  | 46 | 34 | 16 | 16 | 0 | 48 | 12 | 48 | 8 |
-| E  | 26 | 38 | 32 | 40 | 48 | 0 | 48 | 12 | 56 |
-| F  | 46 | 34 | 20 | 16 | 12 | 48 | 0 | 52 | 8 |
-| G  | 38 | 50 | 32 | 52 | 48 | 12 | 52 | 0 | 56 |
-| H  | 54 | 42 | 24 | 24 | 8 | 56 | 8 | 56 | 0 |
-
-## 4. Supuestos que deben utilizarse
-
-- Las 3 entregas de un mismo cliente pueden consolidarse en una única visita.
-- Por tanto, cada cliente genera:
-  - una parada;
-  - 2.400 kg;
-  - 6 pallets;
-  - 20 minutos de descarga.
-- Debido a la capacidad de 12 pallets y 3.500 kg, un camión puede transportar como máximo la demanda consolidada de un cliente por viaje:
-  - dos clientes supondrían 4.800 kg, superando los 3.500 kg;
-  - por tanto, cada viaje transportará la mercancía de un único cliente.
-- Un mismo camión puede realizar varios viajes durante el día, regresando al almacén entre viajes para recargar.
-- El tiempo de carga en el almacén no se ha proporcionado. Utilizar inicialmente 0 minutos, pero incluir en Excel una celda editable llamada “Tiempo de carga por viaje” para realizar simulaciones.
-- Priorizar las entregas A y B dentro de sus ventanas de 08:00 a 10:00.
-- Si la llegada se produce antes de las 08:00, contabilizar el tiempo de espera.
-- No inventar carreteras, coordenadas, tráfico ni distancias diferentes de las proporcionadas.
-- Utilizar siempre la matriz de distancias facilitada.
-- Si no existe una solución totalmente viable, identificar claramente la restricción incumplida y proponer la mínima modificación operativa necesaria.
+Tenemos:
+- 1 almacén central: AL
+- 8 clientes: A, B, C, D, E, F, G, H
+- 3 camiones
+- Cada cliente necesita 3 entregas
+- Total: 24 entregas
+- Cada entrega: 200 kg / 2 pallets
+- Capacidad de cada camión: 1.200 kg / 12 pallets
+- Jornada operativa: 07:00–16:00
+- Cada ruta debe comenzar y terminar en AL
+- Tiempo de descarga por entrega: 20 minutos
+- Coste conducción: 1,20 €/km
+- Coste horas extra: 37,50 €/hora
+- Los clientes A y B tienen prioridad.
+- Cliente A tiene ventana horaria 08:00–10:00.
+- Considera que 18 km equivalen aproximadamente a 25 minutos de conducción.
 
-## 5. Método de resolución
+## 2. Matriz de distancias
 
-Resolver el problema como un Multi-Trip Capacitated Vehicle Routing Problem with Time Windows:
+Distancias en km:
 
-- Multi-Trip CVRP.
-- Capacidad limitada por peso y pallets.
-- Ventanas horarias para A y B.
-- Tres vehículos.
-- Múltiples viajes por vehículo.
-- Salida y regreso a AL en cada viaje.
+|     | AL | A | B | C | D | E | F | G | H |
+|-----|----|---|---|---|---|---|---|---|---|
+| AL  | 0  | 12| 30| 30| 46| 26| 46| 38| 54|
+| A   | 12 | 0 | 18| 18| 34| 38| 34| 50| 42|
+| B   | 30 | 18| 0 | 20| 16| 32| 20| 32| 24|
+| C   | 30 | 18| 20| 0 | 16| 40| 16| 52| 24|
+| D   | 46 | 34| 16| 16| 0 | 48| 12| 48| 8 |
+| E   | 26 | 38| 32| 40| 48| 0 | 48| 12| 56|
+| F   | 46 | 34| 20| 16| 12| 48| 0 | 52| 8 |
+| G   | 38 | 50| 32| 52| 48| 12| 52| 0 | 56|
+| H   | 54 | 42| 24| 24| 8 | 56| 8 | 56| 0 |
 
-Puedes utilizar:
+## 3. Objetivo de optimización
 
-- programación lineal entera;
-- búsqueda exhaustiva;
-- heurística de ahorro de Clarke-Wright adaptada;
-- algoritmo nearest-neighbour con mejora 2-opt;
-- algoritmo genético;
-- OR-Tools si está disponible.
+Determina cómo organizar las rutas para mañana.
 
-La solución debe ser reproducible y no debe basarse únicamente en una estimación visual.
+Prioriza los objetivos en este orden:
 
-## 6. Costes editables
+1. Cumplir las ventanas horarias, especialmente A 08:00–10:00.
+2. Cumplir las 24 entregas.
+3. No superar la capacidad del camión en ningún momento.
+4. Minimizar kilómetros totales.
+5. Minimizar horas totales de conducción.
+6. Minimizar horas extra.
+7. Minimizar el coste total de transporte.
 
-Incluir en el Excel una hoja de parámetros con celdas editables para:
+Ten en cuenta que un camión puede volver a AL para recargar y realizar una nueva ruta durante la misma jornada si resulta necesario.
 
-- Coste por kilómetro.
-- Coste por hora normal.
-- Coste por hora extra.
-- Tiempo de carga por viaje.
-- Hora de inicio.
-- Hora de fin.
-- Peso por entrega.
-- Pallets por entrega.
-- Número de entregas por cliente.
-- Capacidad de peso del camión.
-- Capacidad de pallets del camión.
-
-Si no se facilitan importes de coste, utilizar inicialmente:
-
-- Coste por kilómetro: 1,20 €/km.
-- Coste por hora normal: 25 €/hora.
-- Coste por hora extra: 37,50 €/hora.
+## 4. Resultado esperado
 
-Marcar claramente estos valores como “supuestos editables”.
+No quiero únicamente una explicación textual.
 
-## 7. Estructura obligatoria del Excel
+Primero calcula una solución de rutas factible y después genera una representación visual clara.
 
-Crear un archivo llamado:
-
-Planificacion_Rutas_8_Clientes_3_Camiones.xlsx
-
-El archivo debe contener las siguientes hojas.
-
-### Hoja 1: Resumen ejecutivo
-
-Incluir:
-
-- número de clientes;
-- número de entregas;
-- número de camiones;
-- número total de viajes;
-- kilómetros totales;
-- horas totales;
-- coste total;
-- utilización media de peso;
-- utilización media de pallets;
-- horas extra;
-- entregas dentro de ventana;
-- entregas fuera de ventana;
-- indicador general:
-  - VIABLE;
-  - VIABLE CON RIESGOS;
-  - NO VIABLE.
-
-Añadir un resumen de la solución por camión.
-
-### Hoja 2: Datos y parámetros
-
-Incluir todos los parámetros operativos y costes.
-
-Diferenciar por colores:
-
-- celdas de entrada manual;
-- celdas calculadas;
-- resultados;
-- alertas o incumplimientos.
-
-### Hoja 3: Matriz de distancias
-
-Incluir la matriz completa AL–H.
-
-Crear también una matriz de tiempos calculada mediante:
-
-Tiempo en minutos = Distancia × 25 / 18
-
-### Hoja 4: Demanda clientes
-
-Una fila por cliente con:
-
-- cliente;
-- prioridad;
-- entregas;
-- kg por entrega;
-- pallets por entrega;
-- kg totales;
-- pallets totales;
-- inicio de ventana;
-- fin de ventana;
-- tiempo de descarga;
-- estado de asignación.
-
-### Hoja 5: Plan de rutas
-
-Una fila por tramo o movimiento, con las columnas:
-
-- Camión.
-- Viaje.
-- Secuencia.
-- Origen.
-- Destino.
-- Cliente.
-- Hora de salida.
-- Tiempo de viaje.
-- Hora de llegada.
-- Inicio de descarga.
-- Fin de descarga.
-- Tiempo de espera.
-- Distancia.
-- Peso transportado.
-- Pallets transportados.
-- Utilización de peso.
-- Utilización de pallets.
-- Regreso al almacén.
-- Hora de fin del viaje.
-- Cumplimiento de ventana.
-- Cumplimiento de capacidad.
-- Observaciones.
-
-Usar fórmulas de Excel siempre que sea posible.
-
-### Hoja 6: Resumen por camión
-
-Una fila por camión con:
-
-- clientes asignados;
-- secuencia de viajes;
-- número de viajes;
-- hora de inicio;
-- hora de finalización;
-- km totales;
-- tiempo de viaje;
-- tiempo de descarga;
-- tiempo de carga;
-- tiempo de espera;
-- horas normales;
-- horas extra;
-- coste por kilómetros;
-- coste de horas normales;
-- coste de horas extra;
-- coste total;
-- utilización media;
-- estado de viabilidad.
-
-### Hoja 7: Validación
-
-Comprobar automáticamente:
-
-- todos los clientes están asignados;
-- existen exactamente 24 entregas;
-- cada cliente recibe 3 entregas;
-- ningún viaje supera 3.500 kg;
-- ningún viaje supera 12 pallets;
-- A está atendido entre 08:00 y 10:00;
-- B está atendido entre 08:00 y 10:00;
-- los camiones terminan antes de las 16:00;
-- todos los viajes empiezan y terminan en AL;
-- no existen clientes duplicados o sin asignar.
-
-Mostrar cada control como:
-
-- OK;
-- WARNING;
-- ERROR.
-
-### Hoja 8: Comparativa
-
-Crear al menos dos escenarios:
-
-1. Escenario optimizado.
-2. Escenario alternativo equilibrando mejor el trabajo entre los tres camiones.
-
-Comparar:
-
-- kilómetros;
-- duración;
-- horas extra;
-- coste;
-- cumplimiento de ventanas;
-- utilización;
-- riesgo operativo.
-
-Recomendar el mejor escenario y justificar la decisión.
-
-### Hoja 9: Gantt
-
-Crear un gráfico de Gantt operativo con:
-
-- eje horizontal de 07:00 a 16:00;
-- una línea por camión;
-- viajes;
-- conducción;
-- descarga;
-- espera;
-- carga en almacén.
-
-Utilizar colores diferentes para cada actividad.
-
-## 8. Fórmulas y controles
-
-Incluir fórmulas, no solamente valores estáticos.
-
-Ejemplos:
-
-- Peso total cliente = Entregas × kg por entrega.
-- Pallets totales = Entregas × pallets por entrega.
-- Tiempo de viaje = Distancia × 25 / 18 / 1440.
-- Hora llegada = Hora salida + Tiempo de viaje.
-- Hora fin descarga = Inicio descarga + 20 / 1440.
-- Utilización peso = Peso / 3.500.
-- Utilización pallets = Pallets / 12.
-- Horas extra = MAX(0; Hora final - 16:00).
-- Cumplimiento capacidad = SI(Y(Peso<=3500;Pallets<=12);"OK";"ERROR").
-- Cumplimiento ventana = comprobar llegada e inicio de servicio contra la ventana asignada.
-
-Utilizar fórmulas compatibles con Excel y evitar referencias rotas.
-
-## 9. Presentación
-
-El Excel debe ser profesional y apto para una reunión operativa:
-
-- encabezados claros;
-- filtros;
-- paneles congelados;
-- formatos de hora HH:MM;
-- formato de moneda en euros;
-- formato condicional;
-- rojo para incumplimientos;
-- ámbar para riesgos;
-- verde para cumplimiento;
-- gráficos legibles;
-- leyenda de colores;
-- columnas ajustadas;
-- sin celdas con errores #N/A, #VALUE!, #REF! o #DIV/0!.
-
-## 10. Resultado obligatorio
-
-No respondas únicamente con una explicación textual.
-
-Genera y entrega el archivo Excel .xlsx completo y descargable.
-
-Antes de terminar:
-
-1. abre o valida el archivo generado;
-2. comprueba todas las fórmulas;
-3. confirma que las 24 entregas están incluidas;
-4. confirma que A y B cumplen la ventana 08:00–10:00;
-5. confirma que ningún viaje supera peso o pallets;
-6. confirma que los tres camiones regresan a AL;
-7. confirma que el archivo no contiene errores de fórmula.
-
-Incluye dentro de la hoja “Resumen ejecutivo” una conclusión operativa y una lista de riesgos y acciones recomendadas.
+### A. Resumen ejecutivo
+
+Indica:
+
+- kilómetros totales
+- tiempo total estimado
+- coste estimado de conducción
+- horas extra, si existen
+- coste total
+- número de entregas realizadas
+- utilización aproximada de cada camión
+
+### B. Plan por camión
+
+Para cada camión muestra explícitamente la secuencia:
+
+CAMIÓN 1
+AL → Cliente X → Cliente Y → Cliente Z → AL
+AL → Cliente ... → AL
+
+CAMIÓN 2
+AL → ...
+
+CAMIÓN 3
+AL → ...
+
+Si existen varias rutas o viajes para un mismo camión, mostrarlos como:
+- Ruta 1
+- Ruta 2
+- Ruta 3
+
+Para cada parada indica:
+- cliente
+- hora estimada de llegada
+- hora estimada de salida
+- pallets entregados
+- kg entregados
+- km desde la parada anterior
+- km acumulados
+- pallets restantes en el camión
+
+### C. Visualización principal
+
+Genera una visualización tipo mapa/esquema logístico.
+
+Debe aparecer:
+- AL como almacén central
+- Clientes A, B, C, D, E, F, G y H
+- Los 3 camiones
+- Las rutas completas de cada camión
+
+Utiliza un color diferente para cada camión:
+- Camión 1: azul
+- Camión 2: naranja
+- Camión 3: verde
+
+Dibuja líneas y flechas conectando las paradas siguiendo el orden real:
+
+AL → parada 1 → parada 2 → parada 3 → ... → AL
+
+Sobre cada cliente muestra:
+- nombre del cliente
+- número de orden de la parada
+- hora aproximada de llegada
+
+Las líneas deben representar el recorrido, no simplemente conectar todos los clientes.
+
+Si un camión realiza más de una ruta desde AL, debe verse claramente el regreso al almacén y el inicio de la siguiente ruta.
+
+Añade una leyenda identificando Camión 1, Camión 2 y Camión 3.
+
+IMPORTANTE:
+La matriz proporciona distancias pero no coordenadas geográficas. Por tanto, NO inventes posiciones geográficas reales. Utiliza un esquema de red logística (network diagram) para mostrar las rutas.
+
+### D. Timeline operativo
+
+Debajo del mapa genera una línea temporal de 07:00 a 16:00 con tres filas:
+
+Camión 1 | [conducción] [cliente] [descarga] [conducción] ...
+Camión 2 | [...]
+Camión 3 | [...]
+
+Diferencia visualmente:
+- conducción
+- descarga
+- estancia en AL / recarga
+- tiempo de espera
+- horas extra
+
+### E. Tabla final
+
+Genera una tabla:
+
+| Camión | Ruta | Salida AL | Clientes | Regreso AL | Km | Tiempo | Entregas | Pallets | Coste |
+|--------|------|-----------|----------|------------|----|--------|----------|---------|-------|
+
+Incluye una fila TOTAL.
+
+## 5. Validación obligatoria
+
+Antes de dar la solución final verifica:
+
+- 8 clientes servidos.
+- Exactamente 24 entregas.
+- 48 pallets entregados.
+- 4.800 kg entregados.
+- Ningún camión transporta simultáneamente más de 12 pallets / 1.200 kg.
+- Cliente A recibe servicio dentro de 08:00–10:00.
+- Todas las rutas comienzan y terminan en AL.
+- Los cálculos de kilómetros utilizan exclusivamente la matriz proporcionada.
+- Los tiempos de conducción utilizan la relación 18 km = 25 minutos.
+- Cada entrega añade 20 minutos de descarga.
+
+Si alguna condición no puede cumplirse, NO la ignores:
+identifica el conflicto, explica la causa y propone la modificación mínima necesaria.
+
+## 6. Presentación
+
+El resultado debe ser apto para presentarlo a un responsable de transporte u operaciones.
+
+Primero muestra visualmente la solución y después explica las decisiones.
+
+El objetivo principal es poder entender en menos de 30 segundos:
+
+1. Qué hace el Camión 1.
+2. Qué hace el Camión 2.
+3. Qué hace el Camión 3.
+4. Qué clientes visita cada uno.
+5. En qué orden.
+6. A qué hora.
+7. Cuándo vuelve cada camión a AL.
+8. Si se cumplen las 24 entregas dentro de la jornada.
