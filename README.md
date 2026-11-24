@@ -14,4 +14,4 @@ The Valley - Construccion IA
   * [Contrato Hipotético](https://github.com/abelmmg/The_Valley_Construccion/blob/main/2.%20IA%20Compras/Contrato_suministro_cemento_granel_PYME.pdf)
 * Kraljic
   * [Prompt Generar Excel](https://github.com/abelmmg/The_Valley_Construccion/blob/main/2.%20IA%20Compras/Matriz%20Kraljic.md)
-  * [Excel Generad0](https://github.com/abelmmg/The_Valley_Construccion/blob/main/2.%20IA%20Compras/Matriz_Kraljic_PYME_Vidrio.xlsx)
+  * [Excel Generado](https://github.com/abelmmg/The_Valley_Construccion/blob/main/2.%20IA%20Compras/Matriz_Kraljic_PYME_Vidrio.xlsx)
