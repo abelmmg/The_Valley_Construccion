@@ -1,6 +1,10 @@
 # The_Valley_Construccion
 The Valley - Construccion IA
 
+## Nuevo Tablero
+
+* [Reto A - ¿Por qué perdemos el margen](https://github.com/abelmmg/The_Valley_Construccion/blob/main/1.%20Nuevo%20Tablero/RETO%20A%20-%20Por%20Que%20Perdemos%20Margen.md)
+* [Reto B - Continuidad ante un retraso](https://github.com/abelmmg/The_Valley_Construccion/blob/main/1.%20Nuevo%20Tablero/RETO%20B%20-%20Continuidad%20ante%20un%20retraso.md)
 
 ## IA Compras
 
